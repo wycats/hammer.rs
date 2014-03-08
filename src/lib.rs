@@ -1,3 +1,5 @@
+#[crate_id="hammer"]
+
 extern crate serialize;
 extern crate collections;
 use serialize::{Decoder,Decodable};
