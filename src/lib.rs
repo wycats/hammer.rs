@@ -1,4 +1,5 @@
 #[feature(macro_rules)];
+#[crate_id="hammer"];
 
 extern crate serialize;
 extern crate collections;
