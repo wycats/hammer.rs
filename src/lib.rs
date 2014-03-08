@@ -1,24 +1,7 @@
-#[feature(macro_rules)];
-#[crate_id="hammer"];
-
 extern crate serialize;
 extern crate collections;
 use serialize::{Decoder,Decodable};
 use collections::hashmap::HashMap;
-
-#[deriving(Decodable, Show, Eq)]
-struct CompileFlags {
-  color: bool,
-  count: uint,
-  maybe: Option<uint>,
-  some_some: bool
-}
-
-impl FlagConfig for CompileFlags {
-  fn config(_dummy_self: Option<CompileFlags>, c: FlagConfiguration) -> FlagConfiguration {
-    c.short("color", 'c')
-  }
-}
 
 trait FlagConfig {
   fn config(_dummy_self:Option<Self>, c: FlagConfiguration) -> FlagConfiguration;
@@ -182,18 +165,44 @@ impl Decoder for FlagDecoder {
   fn read_map_elt_val<T>(&mut self, idx: uint, f: |&mut FlagDecoder| -> T) -> T { unimplemented!() }
 }
 
-fn main() {
-  let mut decoder = FlagDecoder::new::<CompileFlags>(std::os::args().tail());
-  let flags: CompileFlags = Decodable::decode(&mut decoder);
+#[cfg(test)]
+mod tests {
+  use super::{FlagConfig, FlagConfiguration, FlagDecoder};
+  use serialize::{Decoder,Decodable};
 
-  let remaining = decoder.remaining();
-
-  match decoder.error {
-    None => {
-      println!("{:?}", flags);
-      println!("remaining: {:?}", remaining);
-    }
-    Some(err) => println!("{}", err)
+  #[deriving(Decodable, Show, Eq)]
+  struct CompileFlags {
+    color: bool,
+    count: uint,
+    maybe: Option<uint>,
+    some_some: bool
   }
 
+  impl FlagConfig for CompileFlags {
+    fn config(_dummy_self: Option<CompileFlags>, c: FlagConfiguration) -> FlagConfiguration {
+      c.short("color", 'c')
+    }
+  }
+
+  #[test]
+  fn test_example() {
+    let args = ~[~"--count", ~"1", ~"foo", ~"-c"];
+    let mut decoder = FlagDecoder::new::<CompileFlags>(args);
+    let flags: CompileFlags = Decodable::decode(&mut decoder);
+
+    assert_eq!(decoder.remaining(), ~[~"foo"]);
+    assert_eq!(flags, CompileFlags{ color: true, count: 1u, maybe: None, some_some: false });
+  }
+
+  #[test]
+  fn test_err() {
+    let mut decoder = FlagDecoder::new::<CompileFlags>(~[]);
+    let flags: CompileFlags = Decodable::decode(&mut decoder);
+
+    assert!(decoder.error != None, "The decoder has an error");
+  }
+
+  // TODO: value flags (like --count) should produce an error, not fail! if they are used
+  // without a following value
 }
+

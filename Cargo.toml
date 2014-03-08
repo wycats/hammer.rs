@@ -1,0 +1,5 @@
+[project]
+
+name = "hammer"
+version = "0.1.0"
+authors = "Yehuda Katz <wycats@gmail.com>"
