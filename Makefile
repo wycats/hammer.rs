@@ -1,4 +1,4 @@
-HAMMER_LIB := $(shell rustc --crate-file-name src/lib.rs)
+HAMMER_LIB := $(shell rustc --crate-file-name src/lib.rs --crate-type=rlib)
 
 default: target/$(HAMMER_LIB)
 

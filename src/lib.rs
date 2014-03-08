@@ -1,4 +1,4 @@
-#[crate_id="hammer"]
+#[crate_id="hammer"];
 
 extern crate serialize;
 extern crate collections;
