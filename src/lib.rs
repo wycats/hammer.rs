@@ -5,12 +5,12 @@ extern crate collections;
 use serialize::{Decoder,Decodable};
 use collections::hashmap::HashMap;
 
-trait FlagConfig {
+pub trait FlagConfig {
   fn config(_dummy_self:Option<Self>, c: FlagConfiguration) -> FlagConfiguration;
 }
 
 #[deriving(Show, Eq)]
-struct FlagConfiguration {
+pub struct FlagConfiguration {
   short_aliases: HashMap<~str, char>
 }
 
@@ -26,7 +26,7 @@ impl FlagConfiguration {
 }
 
 #[deriving(Show, Eq)]
-struct FlagDecoder {
+pub struct FlagDecoder {
   source: ~[~str],
   current_field: Option<~str>,
   error: Option<~str>,
@@ -132,7 +132,29 @@ impl Decoder for FlagDecoder {
   fn read_f64(&mut self) -> f64 { unimplemented!() }
   fn read_f32(&mut self) -> f32 { unimplemented!() }
   fn read_char(&mut self) -> char { unimplemented!() }
-  fn read_str(&mut self) -> ~str { unimplemented!() }
+
+  fn read_str(&mut self) -> ~str {
+    let position = self.field_pos();
+
+    if position.is_none() {
+      self.error = Some(format!("{} is required", self.canonical_field_name()));
+      return ~"";
+    }
+
+    let pos = position.unwrap();
+    let val = from_str(self.source[pos + 1]);
+
+    self.remove_val_field();
+
+    match val {
+      None => {
+        self.error = Some(format!("{} is missing a following string", self.canonical_field_name()));
+        ~""
+      },
+      Some(val) => val
+    }
+  }
+
   fn read_enum<T>(&mut self, name: &str, f: |&mut FlagDecoder| -> T) -> T { unimplemented!() }
   fn read_enum_variant<T>(&mut self, names: &[&str], f: |&mut FlagDecoder, uint| -> T) -> T { unimplemented!() }
   fn read_enum_variant_arg<T>(&mut self, a_idx: uint, f: |&mut FlagDecoder| -> T) -> T { unimplemented!() }
