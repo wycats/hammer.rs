@@ -15,4 +15,4 @@ tests:
 	rustc --test src/lib.rs --out-dir target -o target/tests
 	./target/tests
 
-.PHONY: default tests
+.PHONY: default clean tests
