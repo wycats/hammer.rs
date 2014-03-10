@@ -10,3 +10,9 @@ clean:
 
 target/$(HAMMER_LIB): target src/lib.rs
 	rustc src/lib.rs --out-dir target --crate-type=rlib
+
+tests:
+	rustc --test src/lib.rs --out-dir target -o target/tests
+	./target/tests
+
+.PHONY: default tests
