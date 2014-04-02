@@ -1,8 +1,8 @@
-#[crate_id="hammer"];
+#![crate_id="hammer"]
 
 extern crate serialize;
 extern crate collections;
-use serialize::{Decoder,Decodable};
+use serialize::Decoder;
 use collections::hashmap::HashMap;
 
 pub trait FlagConfig {
@@ -17,11 +17,11 @@ pub struct FlagConfiguration {
 }
 
 impl FlagConfiguration {
-    fn new() -> FlagConfiguration {
+    pub fn new() -> FlagConfiguration {
         FlagConfiguration{ short_aliases: HashMap::new() }
     }
 
-    fn short(mut self, string: &str, char: char) -> FlagConfiguration {
+    pub fn short(mut self, string: &str, char: char) -> FlagConfiguration {
         self.short_aliases.insert(string.to_owned(), char);
         self
     }
@@ -85,15 +85,26 @@ impl FlagDecoder {
     }
 }
 
-impl Decoder for FlagDecoder {
-    fn read_nil(&mut self) { unimplemented!() }
+pub type HammerResult<T> = Result<T, HammerError>;
 
-    fn read_uint(&mut self) -> uint {
+pub struct HammerError {
+    pub message: ~str
+}
+
+impl HammerError {
+    fn new<T>(message: ~str) -> HammerResult<T> {
+        Err(HammerError{ message: message })
+    }
+}
+
+impl Decoder<HammerError> for FlagDecoder {
+    fn read_nil(&mut self) -> HammerResult<()> { unimplemented!() }
+
+    fn read_uint(&mut self) -> HammerResult<uint> {
         let position = self.field_pos();
 
         if position.is_none() {
-            self.error = Some(format!("{} is required", self.canonical_field_name()));
-            return 0;
+            return HammerError::new(format!("{} is required", self.canonical_field_name()));
         }
 
         let pos = position.unwrap();
@@ -102,45 +113,41 @@ impl Decoder for FlagDecoder {
         self.remove_val_field();
 
         match val {
-            None => {
-                self.error = Some(format!("{} is missing a following integer", self.canonical_field_name()));
-                0
-            },
-            Some(val) => val
+            None => HammerError::new(format!("{} is missing a following integer", self.canonical_field_name())),
+            Some(val) => Ok(val)
         }
 
     }
 
-    fn read_u64(&mut self) -> u64 { unimplemented!() }
-    fn read_u32(&mut self) -> u32 { unimplemented!() }
-    fn read_u16(&mut self) -> u16 { unimplemented!() }
-    fn read_u8(&mut self) -> u8 { unimplemented!() }
-    fn read_int(&mut self) -> int { unimplemented!() }
-    fn read_i64(&mut self) -> i64 { unimplemented!() }
-    fn read_i32(&mut self) -> i32 { unimplemented!() }
-    fn read_i16(&mut self) -> i16 { unimplemented!() }
-    fn read_i8(&mut self) -> i8 { unimplemented!() }
+    fn read_u64(&mut self) -> HammerResult<u64> { unimplemented!() }
+    fn read_u32(&mut self) -> HammerResult<u32> { unimplemented!() }
+    fn read_u16(&mut self) -> HammerResult<u16> { unimplemented!() }
+    fn read_u8(&mut self) -> HammerResult<u8> { unimplemented!() }
+    fn read_int(&mut self) -> HammerResult<int> { unimplemented!() }
+    fn read_i64(&mut self) -> HammerResult<i64> { unimplemented!() }
+    fn read_i32(&mut self) -> HammerResult<i32> { unimplemented!() }
+    fn read_i16(&mut self) -> HammerResult<i16> { unimplemented!() }
+    fn read_i8(&mut self) -> HammerResult<i8> { unimplemented!() }
 
-    fn read_bool(&mut self) -> bool {
+    fn read_bool(&mut self) -> HammerResult<bool> {
         match self.field_pos() {
-            None => false,
-            Some(pos) => {
+            None => Ok(false),
+            Some(_) => {
                 self.remove_bool_field();
-                true
+                Ok(true)
             }
         }
     }
 
-    fn read_f64(&mut self) -> f64 { unimplemented!() }
-    fn read_f32(&mut self) -> f32 { unimplemented!() }
-    fn read_char(&mut self) -> char { unimplemented!() }
+    fn read_f64(&mut self) -> HammerResult<f64> { unimplemented!() }
+    fn read_f32(&mut self) -> HammerResult<f32> { unimplemented!() }
+    fn read_char(&mut self) -> HammerResult<char> { unimplemented!() }
 
-    fn read_str(&mut self) -> ~str {
+    fn read_str(&mut self) -> HammerResult<~str> {
         let position = self.field_pos();
 
         if position.is_none() {
-            self.error = Some(format!("{} is required", self.canonical_field_name()));
-            return ~"";
+            return HammerError::new(format!("{} is required", self.canonical_field_name()));
         }
 
         let pos = position.unwrap();
@@ -149,46 +156,59 @@ impl Decoder for FlagDecoder {
         self.remove_val_field();
 
         match val {
-            None => {
-                self.error = Some(format!("{} is missing a following string", self.canonical_field_name()));
-                ~""
-            },
-            Some(val) => val
+            None => HammerError::new(format!("{} is missing a following string", self.canonical_field_name())),
+            Some(val) => Ok(val)
         }
     }
 
-    fn read_enum<T>(&mut self, name: &str, f: |&mut FlagDecoder| -> T) -> T { unimplemented!() }
-    fn read_enum_variant<T>(&mut self, names: &[&str], f: |&mut FlagDecoder, uint| -> T) -> T { unimplemented!() }
-    fn read_enum_variant_arg<T>(&mut self, a_idx: uint, f: |&mut FlagDecoder| -> T) -> T { unimplemented!() }
-    fn read_enum_struct_variant<T>(&mut self, names: &[&str], f: |&mut FlagDecoder, uint| -> T) -> T { unimplemented!() }
-    fn read_enum_struct_variant_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut FlagDecoder| -> T) -> T { unimplemented!() }
+    #[allow(unused_variable)]
+    fn read_enum<T>(&mut self, name: &str, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
+    #[allow(unused_variable)]
+    fn read_enum_variant<T>(&mut self, names: &[&str], f: |&mut FlagDecoder, uint| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
+    #[allow(unused_variable)]
+    fn read_enum_variant_arg<T>(&mut self, a_idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
+    #[allow(unused_variable)]
+    fn read_enum_struct_variant<T>(&mut self, names: &[&str], f: |&mut FlagDecoder, uint| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
+    #[allow(unused_variable)]
+    fn read_enum_struct_variant_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
 
-    fn read_struct<T>(&mut self, s_name: &str, len: uint, f: |&mut FlagDecoder| -> T) -> T {
+    #[allow(unused_variable)]
+    fn read_struct<T>(&mut self, s_name: &str, len: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> {
         f(self)
     }
 
-    fn read_struct_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut FlagDecoder| -> T) -> T {
+    #[allow(unused_variable)]
+    fn read_struct_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> {
         self.current_field = Some(f_name.to_owned());
         f(self)
     }
 
-    fn read_tuple<T>(&mut self, f: |&mut FlagDecoder, uint| -> T) -> T { unimplemented!() }
-    fn read_tuple_arg<T>(&mut self, a_idx: uint, f: |&mut FlagDecoder| -> T) -> T { unimplemented!() }
-    fn read_tuple_struct<T>(&mut self, s_name: &str, f: |&mut FlagDecoder, uint| -> T) -> T { unimplemented!() }
-    fn read_tuple_struct_arg<T>(&mut self, a_idx: uint, f: |&mut FlagDecoder| -> T) -> T { unimplemented!() }
+    #[allow(unused_variable)]
+    fn read_tuple<T>(&mut self, f: |&mut FlagDecoder, uint| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
+    #[allow(unused_variable)]
+    fn read_tuple_arg<T>(&mut self, a_idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
+    #[allow(unused_variable)]
+    fn read_tuple_struct<T>(&mut self, s_name: &str, f: |&mut FlagDecoder, uint| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
+    #[allow(unused_variable)]
+    fn read_tuple_struct_arg<T>(&mut self, a_idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
 
-    fn read_option<T>(&mut self, f: |&mut FlagDecoder, bool| -> T) -> T {
+    fn read_option<T>(&mut self, f: |&mut FlagDecoder, bool| -> HammerResult<T>) -> HammerResult<T> {
         match self.field_pos() {
             None => f(self, false),
             Some(_) => f(self, true)
         }
     }
 
-    fn read_seq<T>(&mut self, f: |&mut FlagDecoder, uint| -> T) -> T { unimplemented!() }
-    fn read_seq_elt<T>(&mut self, idx: uint, f: |&mut FlagDecoder| -> T) -> T { unimplemented!() }
-    fn read_map<T>(&mut self, f: |&mut FlagDecoder, uint| -> T) -> T { unimplemented!() }
-    fn read_map_elt_key<T>(&mut self, idx: uint, f: |&mut FlagDecoder| -> T) -> T { unimplemented!() }
-    fn read_map_elt_val<T>(&mut self, idx: uint, f: |&mut FlagDecoder| -> T) -> T { unimplemented!() }
+    #[allow(unused_variable)]
+    fn read_seq<T>(&mut self, f: |&mut FlagDecoder, uint| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
+    #[allow(unused_variable)]
+    fn read_seq_elt<T>(&mut self, idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
+    #[allow(unused_variable)]
+    fn read_map<T>(&mut self, f: |&mut FlagDecoder, uint| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
+    #[allow(unused_variable)]
+    fn read_map_elt_key<T>(&mut self, idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
+    #[allow(unused_variable)]
+    fn read_map_elt_val<T>(&mut self, idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
 }
 
 #[cfg(test)]
