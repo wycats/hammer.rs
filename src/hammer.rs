@@ -55,8 +55,7 @@ impl FlagDecoder {
 
     fn canonical_field_name(&self) -> ~str {
         let field = &self.current_field;
-        let canonical: ~str = field.get_ref().chars().map(|c| if c == '_' {'-'} else {c}).collect();
-        (format!("--{}", canonical)).to_owned()
+        format!("--{}", field.get_ref().chars().map(|c| if c == '_' {'-'} else {c}).collect::<~str>())
     }
 
     fn field_pos(&self) -> Option<uint> {
