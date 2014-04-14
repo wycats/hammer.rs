@@ -22,8 +22,8 @@ impl FlagConfiguration {
         FlagConfiguration{ short_aliases: HashMap::new() }
     }
 
-    pub fn short(mut self, string: &str, char: char) -> FlagConfiguration {
-        self.short_aliases.insert(string.to_owned(), char);
+    pub fn short(mut self, string: ~str, char: char) -> FlagConfiguration {
+        self.short_aliases.insert(string, char);
         self
     }
 }
