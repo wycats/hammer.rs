@@ -236,7 +236,7 @@ impl Decoder<HammerError> for FlagDecoder {
 
 #[cfg(test)]
 mod tests {
-    use super::{FlagConfig, FlagConfiguration, FlagDecoder};
+    use super::{FlagConfig, FlagConfiguration, FlagDecoder, HammerResult, HammerError};
     use serialize::{Decoder,Decodable};
 
     #[deriving(Decodable, Show, Eq)]
@@ -249,7 +249,7 @@ mod tests {
 
     impl FlagConfig for CompileFlags {
         fn config(_dummy_self: Option<CompileFlags>, c: FlagConfiguration) -> FlagConfiguration {
-            c.short("color", 'c')
+            c.short(~"color", 'c')
         }
     }
 
@@ -257,7 +257,7 @@ mod tests {
     fn test_example() {
         let args = vec!("--count".to_owned(), "1".to_owned(), "foo".to_owned(), "-c".to_owned());
         let mut decoder = FlagDecoder::new::<CompileFlags>(args);
-        let flags: CompileFlags = Decodable::decode(&mut decoder);
+        let flags: CompileFlags = Decodable::decode(&mut decoder).unwrap();
 
         assert_eq!(decoder.remaining(), vec!("foo".to_owned()));
         assert_eq!(flags, CompileFlags{ color: true, count: 1u, maybe: None, some_some: false });
@@ -266,12 +266,13 @@ mod tests {
     #[test]
     fn test_err() {
         let mut decoder = FlagDecoder::new::<CompileFlags>(~[]);
-        let flags: CompileFlags = Decodable::decode(&mut decoder);
+        let flags: HammerResult<CompileFlags> = Decodable::decode(&mut decoder);
 
-        assert!(decoder.error != None, "The decoder has an error");
+        assert_eq!(flags, Err(HammerError { message: ~"--count is required"}));
+
+        assert!(decoder.error == None, "The decoder doesn't have an error");
     }
 
     // TODO: value flags (like --count) should produce an error, not fail! if they are used
     // without a following value
 }
-
