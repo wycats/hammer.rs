@@ -151,7 +151,18 @@ impl Decoder<HammerError> for FlagDecoder {
         }
     }
     fn read_f32(&mut self) -> HammerResult<f32> { self.read_f64().map(|v| v as f32) }
-    fn read_char(&mut self) -> HammerResult<char> { unimplemented!() }
+    fn read_char(&mut self) -> HammerResult<char> {
+        match self.read_str() {
+            Ok(s) => {
+                if s.char_len() == 1 {
+                    Ok(s.char_at(0))
+                } else {
+                    Err(HammerError { message: format!("{} is not a single character", s) })
+                }
+            },
+            Err(e) => Err(e)
+        }
+    }
 
     fn read_str(&mut self) -> HammerResult<~str> {
         let position = self.field_pos();
