@@ -139,8 +139,18 @@ impl Decoder<HammerError> for FlagDecoder {
         }
     }
 
-    fn read_f64(&mut self) -> HammerResult<f64> { unimplemented!() }
-    fn read_f32(&mut self) -> HammerResult<f32> { unimplemented!() }
+    fn read_f64(&mut self) -> HammerResult<f64> {
+        match self.read_str() {
+            Ok(s) => {
+                match from_str(s) {
+                    Some(f) => Ok(f),
+                    None => Err(HammerError { message: format!("could not convert {} to a float", s) })
+                }
+            },
+            Err(e) => Err(e)
+        }
+    }
+    fn read_f32(&mut self) -> HammerResult<f32> { self.read_f64().map(|v| v as f32) }
     fn read_char(&mut self) -> HammerResult<char> { unimplemented!() }
 
     fn read_str(&mut self) -> HammerResult<~str> {
