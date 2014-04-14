@@ -183,6 +183,26 @@ impl Decoder<HammerError> for FlagDecoder {
     }
 
     #[allow(unused_variable)]
+    fn read_struct<T>(&mut self, s_name: &str, len: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> {
+        f(self)
+    }
+
+    #[allow(unused_variable)]
+    fn read_struct_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> {
+        self.current_field = Some(f_name.to_owned());
+        f(self)
+    }
+
+    fn read_option<T>(&mut self, f: |&mut FlagDecoder, bool| -> HammerResult<T>) -> HammerResult<T> {
+        match self.field_pos() {
+            None => f(self, false),
+            Some(_) => f(self, true)
+        }
+    }
+
+    // the rest of these are pretty weird or hard to implement.
+
+    #[allow(unused_variable)]
     fn read_enum<T>(&mut self, name: &str, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
     #[allow(unused_variable)]
     fn read_enum_variant<T>(&mut self, names: &[&str], f: |&mut FlagDecoder, uint| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
@@ -194,17 +214,6 @@ impl Decoder<HammerError> for FlagDecoder {
     fn read_enum_struct_variant_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
 
     #[allow(unused_variable)]
-    fn read_struct<T>(&mut self, s_name: &str, len: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> {
-        f(self)
-    }
-
-    #[allow(unused_variable)]
-    fn read_struct_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> {
-        self.current_field = Some(f_name.to_owned());
-        f(self)
-    }
-
-    #[allow(unused_variable)]
     fn read_tuple<T>(&mut self, f: |&mut FlagDecoder, uint| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
     #[allow(unused_variable)]
     fn read_tuple_arg<T>(&mut self, a_idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
@@ -212,13 +221,6 @@ impl Decoder<HammerError> for FlagDecoder {
     fn read_tuple_struct<T>(&mut self, s_name: &str, f: |&mut FlagDecoder, uint| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
     #[allow(unused_variable)]
     fn read_tuple_struct_arg<T>(&mut self, a_idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
-
-    fn read_option<T>(&mut self, f: |&mut FlagDecoder, bool| -> HammerResult<T>) -> HammerResult<T> {
-        match self.field_pos() {
-            None => f(self, false),
-            Some(_) => f(self, true)
-        }
-    }
 
     #[allow(unused_variable)]
     fn read_seq<T>(&mut self, f: |&mut FlagDecoder, uint| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
