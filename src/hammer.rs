@@ -46,7 +46,7 @@ impl FlagDecoder {
         self.source.clone()
     }
 
-    /**
+    /*
         These helper functions encapsulate the different ways of using a field name.
         For now, this is limited to the field name prefixed by `--`, but I plan to
         add short-name configuration and `--foo=bar` support soon. These methods should
