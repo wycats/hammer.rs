@@ -1,4 +1,5 @@
 #![crate_id="hammer"]
+#![crate_type = "rlib"]
 
 extern crate serialize;
 extern crate collections;
