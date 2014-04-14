@@ -118,15 +118,16 @@ impl Decoder<HammerError> for FlagDecoder {
 
     }
 
-    fn read_u64(&mut self) -> HammerResult<u64> { unimplemented!() }
-    fn read_u32(&mut self) -> HammerResult<u32> { unimplemented!() }
-    fn read_u16(&mut self) -> HammerResult<u16> { unimplemented!() }
-    fn read_u8(&mut self) -> HammerResult<u8> { unimplemented!() }
-    fn read_int(&mut self) -> HammerResult<int> { unimplemented!() }
-    fn read_i64(&mut self) -> HammerResult<i64> { unimplemented!() }
-    fn read_i32(&mut self) -> HammerResult<i32> { unimplemented!() }
-    fn read_i16(&mut self) -> HammerResult<i16> { unimplemented!() }
-    fn read_i8(&mut self) -> HammerResult<i8> { unimplemented!() }
+    // doesn't handle "too large to represent" problems. will just truncate.
+    fn read_u64(&mut self) -> HammerResult<u64> { self.read_uint().map(|v| v as u64) }
+    fn read_u32(&mut self) -> HammerResult<u32> { self.read_uint().map(|v| v as u32) }
+    fn read_u16(&mut self) -> HammerResult<u16> { self.read_uint().map(|v| v as u16) }
+    fn read_u8(&mut self) -> HammerResult<u8>   { self.read_uint().map(|v| v as u8)  }
+    fn read_int(&mut self) -> HammerResult<int> { self.read_uint().map(|v| v as int) }
+    fn read_i64(&mut self) -> HammerResult<i64> { self.read_uint().map(|v| v as i64) }
+    fn read_i32(&mut self) -> HammerResult<i32> { self.read_uint().map(|v| v as i32) }
+    fn read_i16(&mut self) -> HammerResult<i16> { self.read_uint().map(|v| v as i16) }
+    fn read_i8(&mut self) -> HammerResult<i8>   { self.read_uint().map(|v| v as i8)  }
 
     fn read_bool(&mut self) -> HammerResult<bool> {
         match self.field_pos() {
