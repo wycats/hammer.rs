@@ -71,17 +71,15 @@ impl FlagDecoder {
 
     fn remove_bool_field(&mut self) {
         let pos = self.field_pos();
-        let source = &mut self.source;
-
-        source.remove(pos.unwrap());
+        self.source.remove(pos.unwrap());
     }
 
     fn remove_val_field(&mut self) {
         let pos = self.field_pos();
-        let source = &mut self.source;
 
-        source.remove(pos.unwrap());
-        source.remove(pos.unwrap());
+        // removes the flag and the value it's set to
+        self.source.remove(pos.unwrap());
+        self.source.remove(pos.unwrap());
     }
 }
 
