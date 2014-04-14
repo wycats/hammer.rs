@@ -63,8 +63,8 @@ impl FlagDecoder {
         let aliases = &self.config.short_aliases;
 
         source.as_slice().position_elem(&self.canonical_field_name()).or_else(|| {
-            aliases.find(self.current_field.get_ref()).and_then(|char| {
-                source.as_slice().position_elem(&format!("-{}", char))
+            aliases.find(self.current_field.get_ref()).and_then(|&c| {
+                source.iter().position(|s| s[0] == '-' as u8 && s[1] == c as u8)
             })
         })
     }
