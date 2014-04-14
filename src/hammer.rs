@@ -37,9 +37,9 @@ pub struct FlagDecoder {
 }
 
 impl FlagDecoder {
-    pub fn new<T: FlagConfig>(args: &[~str]) -> FlagDecoder {
+    pub fn new<T: FlagConfig>(args: Vec<~str>) -> FlagDecoder {
         let flag_config = FlagConfiguration::new();
-        FlagDecoder{ source: Vec::from_slice(args), current_field: None, error: None, config: FlagConfig::config(None::<T>, flag_config) }
+        FlagDecoder{ source: args, current_field: None, error: None, config: FlagConfig::config(None::<T>, flag_config) }
     }
 
     pub fn remaining(&self) -> Vec<~str> {
