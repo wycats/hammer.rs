@@ -88,6 +88,7 @@ impl FlagDecoder {
 
 pub type HammerResult<T> = Result<T, HammerError>;
 
+#[deriving(Clone, Eq, Ord, Hash, Show)]
 pub struct HammerError {
     pub message: ~str
 }
