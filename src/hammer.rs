@@ -265,7 +265,4 @@ mod tests {
 
         assert!(decoder.error == None, "The decoder doesn't have an error");
     }
-
-    // TODO: value flags (like --count) should produce an error, not fail! if they are used
-    // without a following value
 }
