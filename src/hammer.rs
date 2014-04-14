@@ -100,22 +100,15 @@ impl Decoder<HammerError> for FlagDecoder {
     fn read_nil(&mut self) -> HammerResult<()> { unimplemented!() }
 
     fn read_uint(&mut self) -> HammerResult<uint> {
-        let position = self.field_pos();
-
-        if position.is_none() {
-            return HammerError::new(format!("{} is required", self.canonical_field_name()));
+        match self.read_str() {
+            Ok(s) => {
+                match from_str(s) {
+                    Some(i) => Ok(i),
+                    None => Err(HammerError { message: format!("could not convert {} to an integer", s) })
+                }
+            },
+            Err(e) => Err(e)
         }
-
-        let pos = position.unwrap();
-        let val = from_str(self.source.get(pos + 1).as_slice());
-
-        self.remove_val_field();
-
-        match val {
-            None => HammerError::new(format!("{} is missing a following integer", self.canonical_field_name())),
-            Some(val) => Ok(val)
-        }
-
     }
 
     // doesn't handle "too large to represent" problems. will just truncate.
