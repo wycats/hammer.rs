@@ -29,19 +29,19 @@ impl FlagConfiguration {
 
 #[deriving(Show, Eq)]
 pub struct FlagDecoder {
-    source: ~[~str],
+    source: Vec<~str>,
     current_field: Option<~str>,
     error: Option<~str>,
     config: FlagConfiguration
 }
 
 impl FlagDecoder {
-    pub fn new<T: FlagConfig>(args: &[~str]) -> FlagDecoder {
+    pub fn new<T: FlagConfig>(args: &Vec<~str>) -> FlagDecoder {
         let flag_config = FlagConfiguration::new();
-        FlagDecoder{ source: args.to_owned(), current_field: None, error: None, config: FlagConfig::config(None::<T>, flag_config) }
+        FlagDecoder{ source: args.clone(), current_field: None, error: None, config: FlagConfig::config(None::<T>, flag_config) }
     }
 
-    pub fn remaining(&self) -> ~[~str] {
+    pub fn remaining(&self) -> Vec<~str> {
         self.source.clone()
     }
 
@@ -62,9 +62,9 @@ impl FlagDecoder {
         let source = &self.source;
         let aliases = &self.config.short_aliases;
 
-        source.position_elem(&self.canonical_field_name()).or_else(|| {
+        source.as_slice().position_elem(&self.canonical_field_name()).or_else(|| {
             aliases.find(self.current_field.get_ref()).and_then(|char| {
-                source.position_elem(&format!("-{}", char))
+                source.as_slice().position_elem(&format!("-{}", char))
             })
         })
     }
@@ -108,7 +108,7 @@ impl Decoder<HammerError> for FlagDecoder {
         }
 
         let pos = position.unwrap();
-        let val = from_str(self.source[pos + 1]);
+        let val = from_str(self.source.get(pos + 1).as_slice());
 
         self.remove_val_field();
 
@@ -151,7 +151,7 @@ impl Decoder<HammerError> for FlagDecoder {
         }
 
         let pos = position.unwrap();
-        let val = from_str(self.source[pos + 1]);
+        let val = from_str(self.source.get(pos + 1).as_slice());
 
         self.remove_val_field();
 
