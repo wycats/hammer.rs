@@ -232,11 +232,11 @@ mod tests {
 
     #[test]
     fn test_example() {
-        let args = ~[~"--count", ~"1", ~"foo", ~"-c"];
+        let args = vec!("--count".to_owned(), "1".to_owned(), "foo".to_owned(), "-c".to_owned());
         let mut decoder = FlagDecoder::new::<CompileFlags>(args);
         let flags: CompileFlags = Decodable::decode(&mut decoder);
 
-        assert_eq!(decoder.remaining(), ~[~"foo"]);
+        assert_eq!(decoder.remaining(), vec!("foo".to_owned()));
         assert_eq!(flags, CompileFlags{ color: true, count: 1u, maybe: None, some_some: false });
     }
 
