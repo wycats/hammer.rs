@@ -14,7 +14,7 @@ pub trait FlagConfig {
 
 #[deriving(Show, Eq)]
 pub struct FlagConfiguration {
-    short_aliases: HashMap<~str, char>
+    short_aliases: HashMap<StrBuf, char>
 }
 
 impl FlagConfiguration {
@@ -22,7 +22,7 @@ impl FlagConfiguration {
         FlagConfiguration{ short_aliases: HashMap::new() }
     }
 
-    pub fn short(mut self, string: ~str, char: char) -> FlagConfiguration {
+    pub fn short(mut self, string: StrBuf, char: char) -> FlagConfiguration {
         self.short_aliases.insert(string, char);
         self
     }
@@ -30,19 +30,19 @@ impl FlagConfiguration {
 
 #[deriving(Show, Eq)]
 pub struct FlagDecoder {
-    source: Vec<~str>,
-    current_field: Option<~str>,
-    error: Option<~str>,
+    source: Vec<StrBuf>,
+    current_field: Option<StrBuf>,
+    error: Option<StrBuf>,
     config: FlagConfiguration
 }
 
 impl FlagDecoder {
-    pub fn new<T: FlagConfig>(args: Vec<~str>) -> FlagDecoder {
+    pub fn new<T: FlagConfig>(args: Vec<StrBuf>) -> FlagDecoder {
         let flag_config = FlagConfiguration::new();
         FlagDecoder{ source: args, current_field: None, error: None, config: FlagConfig::config(None::<T>, flag_config) }
     }
 
-    pub fn remaining(&self) -> Vec<~str> {
+    pub fn remaining(&self) -> Vec<StrBuf> {
         self.source.clone()
     }
 
@@ -53,9 +53,9 @@ impl FlagDecoder {
         be the only place that needs to be updated to support new forms.
     */
 
-    fn canonical_field_name(&self) -> ~str {
+    fn canonical_field_name(&self) -> StrBuf {
         let field = &self.current_field;
-        format!("--{}", field.get_ref().chars().map(|c| if c == '_' {'-'} else {c}).collect::<~str>())
+        format_strbuf!("--{}", field.get_ref().as_slice().chars().map(|c| if c == '_' {'-'} else {c}).collect::<StrBuf>())
     }
 
     fn field_pos(&self) -> Option<uint> {
@@ -64,7 +64,7 @@ impl FlagDecoder {
 
         source.as_slice().position_elem(&self.canonical_field_name()).or_else(|| {
             aliases.find(self.current_field.get_ref()).and_then(|&c| {
-                source.iter().position(|s| s[0] == '-' as u8 && s[1] == c as u8)
+                source.iter().position(|s| s.as_slice()[0] == '-' as u8 && s.as_slice()[1] == c as u8)
             })
         })
     }
@@ -87,11 +87,11 @@ pub type HammerResult<T> = Result<T, HammerError>;
 
 #[deriving(Clone, Eq, Ord, Hash, Show)]
 pub struct HammerError {
-    pub message: ~str
+    pub message: StrBuf
 }
 
 impl HammerError {
-    fn new<T>(message: ~str) -> HammerResult<T> {
+    fn new<T>(message: StrBuf) -> HammerResult<T> {
         Err(HammerError{ message: message })
     }
 }
@@ -102,9 +102,9 @@ impl Decoder<HammerError> for FlagDecoder {
     fn read_uint(&mut self) -> HammerResult<uint> {
         match self.read_str() {
             Ok(s) => {
-                match from_str(s) {
+                match from_str(s.as_slice()) {
                     Some(i) => Ok(i),
-                    None => Err(HammerError { message: format!("could not convert {} to an integer", s) })
+                    None => Err(HammerError { message: format_strbuf!("could not convert {} to an integer", s) })
                 }
             },
             Err(e) => Err(e)
@@ -135,9 +135,9 @@ impl Decoder<HammerError> for FlagDecoder {
     fn read_f64(&mut self) -> HammerResult<f64> {
         match self.read_str() {
             Ok(s) => {
-                match from_str(s) {
+                match from_str(s.as_slice()) {
                     Some(f) => Ok(f),
-                    None => Err(HammerError { message: format!("could not convert {} to a float", s) })
+                    None => Err(HammerError { message: format_strbuf!("could not convert {} to a float", s) })
                 }
             },
             Err(e) => Err(e)
@@ -147,32 +147,36 @@ impl Decoder<HammerError> for FlagDecoder {
     fn read_char(&mut self) -> HammerResult<char> {
         match self.read_str() {
             Ok(s) => {
-                if s.char_len() == 1 {
-                    Ok(s.char_at(0))
+                if s.as_slice().char_len() == 1 {
+                    Ok(s.as_slice().char_at(0))
                 } else {
-                    Err(HammerError { message: format!("{} is not a single character", s) })
+                    Err(HammerError { message: format_strbuf!("{} is not a single character", s) })
                 }
             },
             Err(e) => Err(e)
         }
     }
 
-    fn read_str(&mut self) -> HammerResult<~str> {
+    fn read_str(&mut self) -> HammerResult<StrBuf> {
         let position = self.field_pos();
 
         if position.is_none() {
-            return HammerError::new(format!("{} is required", self.canonical_field_name()));
+            return HammerError::new(format_strbuf!("{} is required", self.canonical_field_name()));
         }
 
         let pos = position.unwrap();
-        let val = from_str(self.source.get(pos + 1).as_slice());
+        let val = self.source.get(pos + 1).clone();
 
         self.remove_val_field();
 
+        Ok(val)
+        /* NOTE: when Vec has an indexing method that returns an Option, do
+         * this.
         match val {
-            None => HammerError::new(format!("{} is missing a following string", self.canonical_field_name())),
+            None => HammerError::new(format_strbuf!("{} is missing a following string", self.canonical_field_name())),
             Some(val) => Ok(val)
         }
+        */
     }
 
     #[allow(unused_variable)]
@@ -182,7 +186,7 @@ impl Decoder<HammerError> for FlagDecoder {
 
     #[allow(unused_variable)]
     fn read_struct_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> {
-        self.current_field = Some(f_name.to_owned());
+        self.current_field = Some(f_name.to_strbuf());
         f(self)
     }
 
@@ -242,7 +246,7 @@ mod tests {
 
     impl FlagConfig for CompileFlags {
         fn config(_dummy_self: Option<CompileFlags>, c: FlagConfiguration) -> FlagConfiguration {
-            c.short(~"color", 'c')
+            c.short("color", 'c')
         }
     }
 
