@@ -22,8 +22,8 @@ impl FlagConfiguration {
         FlagConfiguration{ short_aliases: HashMap::new() }
     }
 
-    pub fn short(mut self, string: StrBuf, char: char) -> FlagConfiguration {
-        self.short_aliases.insert(string, char);
+    pub fn short(mut self, string: &str, char: char) -> FlagConfiguration {
+        self.short_aliases.insert(string.to_strbuf(), char);
         self
     }
 }
@@ -37,9 +37,9 @@ pub struct FlagDecoder {
 }
 
 impl FlagDecoder {
-    pub fn new<T: FlagConfig>(args: Vec<StrBuf>) -> FlagDecoder {
+    pub fn new<T: FlagConfig>(args: &[StrBuf]) -> FlagDecoder {
         let flag_config = FlagConfiguration::new();
-        FlagDecoder{ source: args, current_field: None, error: None, config: FlagConfig::config(None::<T>, flag_config) }
+        FlagDecoder{ source: Vec::from_slice(args), current_field: None, error: None, config: FlagConfig::config(None::<T>, flag_config) }
     }
 
     pub fn remaining(&self) -> Vec<StrBuf> {
