@@ -14,7 +14,7 @@ pub trait FlagConfig {
 
 #[deriving(Show, Eq)]
 pub struct FlagConfiguration {
-    short_aliases: HashMap<StrBuf, char>
+    short_aliases: HashMap<String, char>
 }
 
 impl FlagConfiguration {
@@ -30,19 +30,19 @@ impl FlagConfiguration {
 
 #[deriving(Show, Eq)]
 pub struct FlagDecoder {
-    source: Vec<StrBuf>,
-    current_field: Option<StrBuf>,
-    error: Option<StrBuf>,
+    source: Vec<String>,
+    current_field: Option<String>,
+    error: Option<String>,
     config: FlagConfiguration
 }
 
 impl FlagDecoder {
-    pub fn new<T: FlagConfig>(args: &[StrBuf]) -> FlagDecoder {
+    pub fn new<T: FlagConfig>(args: &[String]) -> FlagDecoder {
         let flag_config = FlagConfiguration::new();
         FlagDecoder{ source: Vec::from_slice(args), current_field: None, error: None, config: FlagConfig::config(None::<T>, flag_config) }
     }
 
-    pub fn remaining(&self) -> Vec<StrBuf> {
+    pub fn remaining(&self) -> Vec<String> {
         self.source.clone()
     }
 
@@ -53,9 +53,9 @@ impl FlagDecoder {
         be the only place that needs to be updated to support new forms.
     */
 
-    fn canonical_field_name(&self) -> StrBuf {
+    fn canonical_field_name(&self) -> String {
         let field = &self.current_field;
-        format_strbuf!("--{}", field.get_ref().as_slice().chars().map(|c| if c == '_' {'-'} else {c}).collect::<StrBuf>())
+        format_strbuf!("--{}", field.get_ref().as_slice().chars().map(|c| if c == '_' {'-'} else {c}).collect::<String>())
     }
 
     fn field_pos(&self) -> Option<uint> {
@@ -87,11 +87,11 @@ pub type HammerResult<T> = Result<T, HammerError>;
 
 #[deriving(Clone, Eq, Ord, Hash, Show)]
 pub struct HammerError {
-    pub message: StrBuf
+    pub message: String
 }
 
 impl HammerError {
-    fn new<T>(message: StrBuf) -> HammerResult<T> {
+    fn new<T>(message: String) -> HammerResult<T> {
         Err(HammerError{ message: message })
     }
 }
@@ -157,7 +157,7 @@ impl Decoder<HammerError> for FlagDecoder {
         }
     }
 
-    fn read_str(&mut self) -> HammerResult<StrBuf> {
+    fn read_str(&mut self) -> HammerResult<String> {
         let position = self.field_pos();
 
         if position.is_none() {
