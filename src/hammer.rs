@@ -23,7 +23,7 @@ impl FlagConfiguration {
     }
 
     pub fn short(mut self, string: &str, char: char) -> FlagConfiguration {
-        self.short_aliases.insert(string.to_strbuf(), char);
+        self.short_aliases.insert(string.to_str(), char);
         self
     }
 }
@@ -186,7 +186,7 @@ impl Decoder<HammerError> for FlagDecoder {
 
     #[allow(unused_variable)]
     fn read_struct_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> {
-        self.current_field = Some(f_name.to_strbuf());
+        self.current_field = Some(f_name.to_str());
         f(self)
     }
 
