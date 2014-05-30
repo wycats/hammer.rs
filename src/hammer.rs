@@ -55,7 +55,7 @@ impl FlagDecoder {
 
     fn canonical_field_name(&self) -> String {
         let field = &self.current_field;
-        format_strbuf!("--{}", field.get_ref().as_slice().chars().map(|c| if c == '_' {'-'} else {c}).collect::<String>())
+        format!("--{}", field.get_ref().as_slice().chars().map(|c| if c == '_' {'-'} else {c}).collect::<String>())
     }
 
     fn field_pos(&self) -> Option<uint> {
@@ -104,7 +104,7 @@ impl Decoder<HammerError> for FlagDecoder {
             Ok(s) => {
                 match from_str(s.as_slice()) {
                     Some(i) => Ok(i),
-                    None => Err(HammerError { message: format_strbuf!("could not convert {} to an integer", s) })
+                    None => Err(HammerError { message: format!("could not convert {} to an integer", s) })
                 }
             },
             Err(e) => Err(e)
@@ -137,7 +137,7 @@ impl Decoder<HammerError> for FlagDecoder {
             Ok(s) => {
                 match from_str(s.as_slice()) {
                     Some(f) => Ok(f),
-                    None => Err(HammerError { message: format_strbuf!("could not convert {} to a float", s) })
+                    None => Err(HammerError { message: format!("could not convert {} to a float", s) })
                 }
             },
             Err(e) => Err(e)
@@ -150,7 +150,7 @@ impl Decoder<HammerError> for FlagDecoder {
                 if s.as_slice().char_len() == 1 {
                     Ok(s.as_slice().char_at(0))
                 } else {
-                    Err(HammerError { message: format_strbuf!("{} is not a single character", s) })
+                    Err(HammerError { message: format!("{} is not a single character", s) })
                 }
             },
             Err(e) => Err(e)
@@ -161,7 +161,7 @@ impl Decoder<HammerError> for FlagDecoder {
         let position = self.field_pos();
 
         if position.is_none() {
-            return HammerError::new(format_strbuf!("{} is required", self.canonical_field_name()));
+            return HammerError::new(format!("{} is required", self.canonical_field_name()));
         }
 
         let pos = position.unwrap();
@@ -173,7 +173,7 @@ impl Decoder<HammerError> for FlagDecoder {
         /* NOTE: when Vec has an indexing method that returns an Option, do
          * this.
         match val {
-            None => HammerError::new(format_strbuf!("{} is missing a following string", self.canonical_field_name())),
+            None => HammerError::new(format!("{} is missing a following string", self.canonical_field_name())),
             Some(val) => Ok(val)
         }
         */
