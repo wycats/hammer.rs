@@ -2,9 +2,8 @@
 #![crate_type = "rlib"]
 
 extern crate serialize;
-extern crate collections;
 use serialize::Decoder;
-use collections::hashmap::HashMap;
+use std::collections::hashmap::HashMap;
 
 pub trait FlagConfig {
     fn config(_: Option<Self>, c: FlagConfiguration) -> FlagConfiguration {
@@ -12,7 +11,7 @@ pub trait FlagConfig {
     }
 }
 
-#[deriving(Show, Eq)]
+#[deriving(Show, PartialEq)]
 pub struct FlagConfiguration {
     short_aliases: HashMap<String, char>
 }
@@ -28,7 +27,7 @@ impl FlagConfiguration {
     }
 }
 
-#[deriving(Show, Eq)]
+#[deriving(Show, PartialEq)]
 pub struct FlagDecoder {
     source: Vec<String>,
     current_field: Option<String>,
@@ -85,7 +84,7 @@ impl FlagDecoder {
 
 pub type HammerResult<T> = Result<T, HammerError>;
 
-#[deriving(Clone, Eq, Ord, Hash, Show)]
+#[deriving(Clone, PartialEq, PartialOrd, Hash, Show)]
 pub struct HammerError {
     pub message: String
 }
@@ -236,7 +235,7 @@ mod tests {
     use super::{FlagConfig, FlagConfiguration, FlagDecoder, HammerResult, HammerError};
     use serialize::{Decoder,Decodable};
 
-    #[deriving(Decodable, Show, Eq)]
+    #[deriving(Decodable, Show, PartialEq)]
     struct CompileFlags {
         color: bool,
         count: uint,
