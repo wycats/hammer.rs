@@ -261,7 +261,7 @@ mod tests {
 
     #[test]
     fn test_err() {
-        let mut decoder = FlagDecoder::new::<CompileFlags>(~[]);
+        let mut decoder = FlagDecoder::new::<CompileFlags>(vec!());
         let flags: HammerResult<CompileFlags> = Decodable::decode(&mut decoder);
 
         assert_eq!(flags, Err(HammerError { message: ~"--count is required"}));
