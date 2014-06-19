@@ -13,7 +13,7 @@ target/$(HAMMER_LIB): target src/hammer.rs
 	$(RUSTC) src/hammer.rs --out-dir target --crate-type=rlib
 
 tests:
-	$(RUSTC) --test src/hammer.rs --out-dir target -o target/tests
+	$(RUSTC) --test src/hammer.rs -o target/tests
 	./target/tests
 
 .PHONY: default clean tests
