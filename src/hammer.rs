@@ -1,15 +1,44 @@
 #![crate_id="hammer"]
 #![crate_type = "rlib"]
+#![feature(macro_rules)]
 
 extern crate serialize;
 use serialize::Decoder;
 use std::collections::hashmap::HashMap;
+
+use util::{canonical_field_name};
 
 pub trait FlagConfig {
     fn config(_: Option<Self>, c: FlagConfiguration) -> FlagConfiguration {
         c
     }
 }
+
+mod hammer {
+    pub use super::{FlagConfiguration, FlagConfig};
+}
+
+#[macro_export]
+macro_rules! hammer_config(
+    ($ty:ty | $id:ident | { $expr:expr }) => (
+        impl ::hammer::FlagConfig for $ty {
+            fn config(_: Option<$ty>, $id: ::hammer::FlagConfiguration) -> ::hammer::FlagConfiguration {
+                $expr
+            }
+        }
+    );
+
+    ($ty:ty) => (
+        impl ::hammer::FlagConfig for $ty {
+            fn config(_: Option<$ty>, c: ::hammer::FlagConfiguration) -> ::hammer::FlagConfiguration {
+                c
+            }
+        }
+    )
+)
+
+mod util;
+mod usage;
 
 #[deriving(Show, PartialEq)]
 pub struct FlagConfiguration {
@@ -30,6 +59,10 @@ impl FlagConfiguration {
     pub fn rest_field(mut self, string: &str) -> FlagConfiguration {
         self.rest_field = string.to_str();
         self
+    }
+
+    pub fn short_for(&self, field: &str) -> Option<char> {
+        self.short_aliases.find_equiv(&field).map(|c| *c)
     }
 }
 
@@ -74,8 +107,7 @@ impl FlagDecoder {
     */
 
     fn canonical_field_name(&self) -> String {
-        let field = &self.current_field;
-        format!("--{}", field.get_ref().as_slice().chars().map(|c| if c == '_' {'-'} else {c}).collect::<String>())
+        canonical_field_name(self.current_field.get_ref().as_slice())
     }
 
     fn field_pos(&self) -> Option<uint> {
@@ -278,7 +310,7 @@ impl Decoder<HammerError> for FlagDecoder {
 
 #[cfg(test)]
 mod tests {
-    use super::{FlagConfig, FlagConfiguration, FlagDecoder, HammerResult, HammerError};
+    use super::{FlagDecoder, HammerResult, HammerError};
     use serialize::{Decoder,Decodable};
 
     #[deriving(Decodable, Show, PartialEq)]
@@ -289,11 +321,9 @@ mod tests {
         some_some: bool
     }
 
-    impl FlagConfig for CompileFlags {
-        fn config(_dummy_self: Option<CompileFlags>, c: FlagConfiguration) -> FlagConfiguration {
-            c.short("color", 'c')
-        }
-    }
+    hammer_config!(CompileFlags |c| {
+        c.short("color", 'c')
+    })
 
     #[deriving(Decodable, Show, PartialEq)]
     struct GlobalFlags {
@@ -302,7 +332,7 @@ mod tests {
         rest: Vec<String>
     }
 
-    impl FlagConfig for GlobalFlags {}
+    hammer_config!(GlobalFlags)
 
     #[deriving(Decodable, Show, PartialEq)]
     struct AliasedRest {
@@ -311,11 +341,9 @@ mod tests {
         remaining: Vec<String>
     }
 
-    impl FlagConfig for AliasedRest {
-        fn config(_: Option<AliasedRest>, config: FlagConfiguration) -> FlagConfiguration {
-            config.short("verbose", 'v').rest_field("remaining")
-        }
-    }
+    hammer_config!(AliasedRest |c| {
+        c.short("verbose", 'v').rest_field("remaining")
+    })
 
     #[test]
     fn test_example() {

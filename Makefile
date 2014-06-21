@@ -9,7 +9,7 @@ target:
 clean:
 	rm -rf target
 
-target/$(HAMMER_LIB): target src/hammer.rs
+target/$(HAMMER_LIB): target src/*.rs
 	$(RUSTC) src/hammer.rs --out-dir target --crate-type=rlib
 
 tests:
