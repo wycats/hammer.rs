@@ -172,19 +172,19 @@ impl Decoder<HammerError> for UsageDecoder {
     fn read_map_elt_val<T>(&mut self, idx: uint, f: |&mut UsageDecoder| -> UsageResult<T>) -> UsageResult<T> { unimplemented!() }
 }
 
-pub fn usage<D: Decoder<E>, E, T: Decodable<D, E> + FlagConfig>() -> String {
+pub fn usage<T: Decodable<UsageDecoder, HammerError> + FlagConfig>(force_indent: bool) -> String {
     let mut decoder: UsageDecoder = UsageDecoder::new(None::<T>);
     let _: Result<T, HammerError> = Decodable::decode(&mut decoder);
 
     let fields = decoder.fields;
-    print_usage(fields.as_slice())
+    print_usage(fields.as_slice(), force_indent)
 }
 
-fn print_usage(fields: &[FieldUsage]) -> String {
+fn print_usage(fields: &[FieldUsage], force_indent: bool) -> String {
     let mut out = String::new();
     let shorthands = fields.iter().any(|f| f.alias.is_some());
 
-    let indent = if shorthands {
+    let indent = if force_indent || shorthands {
         "    "
     } else {
         ""
@@ -244,11 +244,11 @@ mod tests {
 
     #[test]
     fn test_mixed_usage() {
-        assert_eq!(usage::<MixedOptions>(), "    --line-count\n    [--color]\n-v, [--verbose]\n".to_str())
+        assert_eq!(usage::<MixedOptions>(false), "    --line-count\n    [--color]\n-v, [--verbose]\n".to_str())
     }
 
     #[test]
     fn test_no_shorthand_usage() {
-        assert_eq!(usage::<NoShorthandOptions>(), "--line-count\n[--color]\n[--verbose]\n".to_str())
+        assert_eq!(usage::<NoShorthandOptions>(false), "--line-count\n[--color]\n[--verbose]\n".to_str())
     }
 }
