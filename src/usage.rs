@@ -2,7 +2,7 @@ use std::default::Default;
 use serialize::{Decoder, Decodable};
 
 use util::canonical_field_name;
-use {FlagConfig, FlagConfiguration};
+use {FlagConfig, FlagConfiguration, HammerError};
 
 #[deriving(PartialEq, Clone, Show)]
 struct FieldUsage {
@@ -25,7 +25,7 @@ impl FieldUsage {
     }
 }
 
-struct UsageDecoder {
+pub struct UsageDecoder {
     config: FlagConfiguration,
     current_field: Option<FieldUsage>,
     fields: Vec<FieldUsage>,
@@ -36,11 +36,11 @@ struct SwallowUsage;
 hammer_config!(SwallowUsage)
 
 impl UsageDecoder {
-    pub fn new<T: FlagConfig>() -> UsageDecoder {
+    pub fn new<T: FlagConfig>(dummy: Option<T>) -> UsageDecoder {
         let flag_config = FlagConfiguration::new();
 
         UsageDecoder {
-            config: FlagConfig::config(None::<T>, flag_config),
+            config: FlagConfig::config(dummy, flag_config),
             current_field: None,
             fields: vec!()
         }
@@ -58,13 +58,13 @@ impl UsageDecoder {
     }
 }
 
-type UsageResult<T> = Result<T, ()>;
+type UsageResult<T> = Result<T, HammerError>;
 
 fn default<T: Default>() -> UsageResult<T> {
     Ok(Default::default())
 }
 
-impl Decoder<()> for UsageDecoder {
+impl Decoder<HammerError> for UsageDecoder {
     fn read_nil(&mut self) -> UsageResult<()> { unimplemented!() }
 
     fn read_uint(&mut self) -> UsageResult<uint> {
@@ -121,7 +121,7 @@ impl Decoder<()> for UsageDecoder {
         self.current_field = Some(field);
 
         if f_name == "rest" {
-            f(&mut UsageDecoder::new::<SwallowUsage>())
+            f(&mut UsageDecoder::new(None::<SwallowUsage>))
         } else {
             f(self)
         }
@@ -172,9 +172,9 @@ impl Decoder<()> for UsageDecoder {
     fn read_map_elt_val<T>(&mut self, idx: uint, f: |&mut UsageDecoder| -> UsageResult<T>) -> UsageResult<T> { unimplemented!() }
 }
 
-fn usage<T: Decodable<UsageDecoder, ()> + FlagConfig>() -> String {
-    let mut decoder = UsageDecoder::new::<T>();
-    let _: T = Decodable::decode(&mut decoder).unwrap();
+pub fn usage<D: Decoder<E>, E, T: Decodable<D, E> + FlagConfig>() -> String {
+    let mut decoder: UsageDecoder = UsageDecoder::new(None::<T>);
+    let _: Result<T, HammerError> = Decodable::decode(&mut decoder);
 
     let fields = decoder.fields;
     print_usage(fields.as_slice())

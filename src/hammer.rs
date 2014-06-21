@@ -6,6 +6,7 @@ extern crate serialize;
 use serialize::Decoder;
 use std::collections::hashmap::HashMap;
 
+pub use usage::{UsageDecoder, usage};
 use util::{canonical_field_name};
 
 pub trait FlagConfig {
