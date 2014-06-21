@@ -21,10 +21,26 @@ mod hammer {
 
 #[macro_export]
 macro_rules! hammer_config(
+    ($ty:ty $desc:expr , | $id:ident | { $expr:expr }) => (
+        impl ::hammer::FlagConfig for $ty {
+            fn config(_: Option<$ty>, $id: ::hammer::FlagConfiguration) -> ::hammer::FlagConfiguration {
+                $expr.desc($desc)
+            }
+        }
+    );
+
     ($ty:ty | $id:ident | { $expr:expr }) => (
         impl ::hammer::FlagConfig for $ty {
             fn config(_: Option<$ty>, $id: ::hammer::FlagConfiguration) -> ::hammer::FlagConfiguration {
                 $expr
+            }
+        }
+    );
+
+    ($ty:ty $desc:expr) => (
+        impl ::hammer::FlagConfig for $ty {
+            fn config(_: Option<$ty>, c: ::hammer::FlagConfiguration) -> ::hammer::FlagConfiguration {
+                c.desc($desc)
             }
         }
     );
@@ -44,16 +60,26 @@ mod usage;
 #[deriving(Show, PartialEq)]
 pub struct FlagConfiguration {
     short_aliases: HashMap<String, char>,
+    description: Option<String>,
     rest_field: String
 }
 
 impl FlagConfiguration {
     pub fn new() -> FlagConfiguration {
-        FlagConfiguration{ short_aliases: HashMap::new(), rest_field: "rest".to_str() }
+        FlagConfiguration {
+            short_aliases: HashMap::new(),
+            description: None,
+            rest_field: "rest".to_str()
+        }
     }
 
     pub fn short(mut self, string: &str, char: char) -> FlagConfiguration {
         self.short_aliases.insert(string.to_str(), char);
+        self
+    }
+
+    pub fn desc(mut self, string: &str) -> FlagConfiguration {
+        self.description = Some(string.to_str());
         self
     }
 
@@ -64,6 +90,10 @@ impl FlagConfiguration {
 
     pub fn short_for(&self, field: &str) -> Option<char> {
         self.short_aliases.find_equiv(&field).map(|c| *c)
+    }
+
+    pub fn description(&self) -> Option<String> {
+        self.description.as_ref().map(|d| d.clone())
     }
 }
 

@@ -172,12 +172,15 @@ impl Decoder<HammerError> for UsageDecoder {
     fn read_map_elt_val<T>(&mut self, idx: uint, f: |&mut UsageDecoder| -> UsageResult<T>) -> UsageResult<T> { unimplemented!() }
 }
 
-pub fn usage<T: Decodable<UsageDecoder, HammerError> + FlagConfig>(force_indent: bool) -> String {
+pub fn usage<T: Decodable<UsageDecoder, HammerError> + FlagConfig>(force_indent: bool) -> (Option<String>, String) {
     let mut decoder: UsageDecoder = UsageDecoder::new(None::<T>);
     let _: Result<T, HammerError> = Decodable::decode(&mut decoder);
 
     let fields = decoder.fields;
-    print_usage(fields.as_slice(), force_indent)
+    let desc = decoder.config.description();
+    let options = print_usage(fields.as_slice(), force_indent);
+
+    (desc, options)
 }
 
 fn print_usage(fields: &[FieldUsage], force_indent: bool) -> String {
