@@ -1,8 +1,8 @@
 use std::default::Default;
-use serialize::{Decoder, Decodable};
+use serialize::Decoder;
 
 use util::canonical_field_name;
-use {FlagConfig, FlagConfiguration, HammerError};
+use {UsageParse, FlagConfig, FlagConfiguration, HammerError};
 
 #[deriving(PartialEq, Clone, Show)]
 struct FieldUsage {
@@ -172,9 +172,9 @@ impl Decoder<HammerError> for UsageDecoder {
     fn read_map_elt_val<T>(&mut self, idx: uint, f: |&mut UsageDecoder| -> UsageResult<T>) -> UsageResult<T> { unimplemented!() }
 }
 
-pub fn usage<T: Decodable<UsageDecoder, HammerError> + FlagConfig>(force_indent: bool) -> (Option<String>, String) {
+pub fn usage<T: UsageParse>(force_indent: bool) -> (Option<String>, String) {
     let mut decoder: UsageDecoder = UsageDecoder::new(None::<T>);
-    let _: Result<T, HammerError> = Decodable::decode(&mut decoder);
+    let _: Result<T, HammerError> = UsageParse::decode_usage(&mut decoder);
 
     let fields = decoder.fields;
     let desc = decoder.config.description();

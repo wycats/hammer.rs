@@ -3,15 +3,40 @@
 #![feature(macro_rules)]
 
 extern crate serialize;
-use serialize::Decoder;
+use serialize::{Decoder, Decodable};
 use std::collections::hashmap::HashMap;
 
-pub use usage::{UsageDecoder, usage};
+pub use usage::usage;
+use usage::UsageDecoder;
 use util::{canonical_field_name};
 
 pub trait FlagConfig {
     fn config(_: Option<Self>, c: FlagConfiguration) -> FlagConfiguration {
         c
+    }
+}
+
+trait FlagParse : FlagConfig {
+    fn decode_flags(d: &mut FlagDecoder) -> Result<Self, HammerError>;
+}
+
+impl<T: FlagConfig + Decodable<FlagDecoder, HammerError>> FlagParse for T {
+    fn decode_flags(d: &mut FlagDecoder) -> Result<T, HammerError> {
+        Decodable::decode(d)
+    }
+}
+
+pub trait Flags : FlagParse + UsageParse {}
+impl<T: FlagParse + UsageParse> Flags for T {}
+
+
+trait UsageParse : FlagConfig {
+    fn decode_usage(d: &mut UsageDecoder) -> Result<Self, HammerError>;
+}
+
+impl<T: FlagConfig + Decodable<UsageDecoder, HammerError>> UsageParse for T {
+    fn decode_usage(d: &mut UsageDecoder) -> Result<T, HammerError> {
+        Decodable::decode(d)
     }
 }
 
@@ -337,6 +362,11 @@ impl Decoder<HammerError> for FlagDecoder {
     fn read_map_elt_key<T>(&mut self, idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
     #[allow(unused_variable)]
     fn read_map_elt_val<T>(&mut self, idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
+}
+
+pub fn decode_args<T: FlagParse>(args: &[String]) -> HammerResult<T> {
+    let mut decoder = FlagDecoder::new::<T>(args);
+    FlagParse::decode_flags(&mut decoder)
 }
 
 #[cfg(test)]
