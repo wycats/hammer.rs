@@ -1,3 +1,53 @@
+/*!
+# Hammer
+
+An option parsing library that deserializes flags into structs.
+
+```rust
+#![feature(phase)]
+
+extern crate serialize;
+#[phase(plugin, link)]
+extern crate hammer;
+
+use std::os;
+use hammer::{decode_args, usage};
+
+#[deriving(Decodable, Show)]
+struct MyOpts {
+    string : Option<String>,
+    verbose : bool,
+    rest : Vec<String> // any extra flags
+}
+
+hammer_config!(MyOpts "A test of hammer.rs", // note the description line
+    |c| { c
+        .short("verbose", 'v') // short versions of variables
+        // .rest_field("remaining") // if you want to put the "extra"
+                                    // arguments in a different field
+    }
+)
+
+fn main() {
+    let opts: MyOpts = decode_args(os::args().tail()).unwrap();
+    println!("opts given: {}", opts);
+    
+    let (desc, usage_text) = usage::<MyOpts>(true);
+    println!("Usage: {}", os::args().get(0));
+    println!("{}", usage_text);
+    println!("{}", desc.unwrap())
+}
+```
+
+Several different types are allowed within the struct:
+
+* Any integer type (usage not yet implemented)
+* Any float type (usage not yet implemented)
+* `String`
+* `bool`, for optional flags with no argument
+* `Option<T>`, for optional flags with an argument
+*/
+
 #![crate_id="hammer"]
 #![crate_type = "rlib"]
 #![feature(macro_rules)]
@@ -44,6 +94,15 @@ mod hammer {
     pub use super::{FlagConfiguration, FlagConfig};
 }
 
+/**
+Make a struct usable by hammer by implementing `FlagConfig` for it.
+
+Usage: `hammer_config!(TYPE ["DESCRIPTION"] [, |c| {EXPRESSION} ])`
+
+The optional DESCRIPTION will be returned by `usage`, and the optional
+EXPRESSION is useful for adding short versions of flags, etc.; see 
+`FlagConfiguration`.
+*/
 #[macro_export]
 macro_rules! hammer_config(
     ($ty:ty $desc:expr , | $id:ident | { $expr:expr }) => (
@@ -82,6 +141,9 @@ macro_rules! hammer_config(
 mod util;
 mod usage;
 
+/** Contains the configuration associated with a FlagConfig,
+such as the short versions of flags and description of the program.
+*/
 #[deriving(Show, PartialEq)]
 pub struct FlagConfiguration {
     short_aliases: HashMap<String, char>,
@@ -97,17 +159,28 @@ impl FlagConfiguration {
             rest_field: "rest".to_str()
         }
     }
-
+    
+    /// Add new "short" version of a flag
+    ///
+    /// ```flag_config.short("verbose", 'v')```
     pub fn short(mut self, string: &str, char: char) -> FlagConfiguration {
         self.short_aliases.insert(string.to_str(), char);
         self
     }
 
+    /// Add a description
+    ///
+    /// ```flag_config.descr("Foo is a program to do bar")```
     pub fn desc(mut self, string: &str) -> FlagConfiguration {
         self.description = Some(string.to_str());
         self
     }
-
+    
+    /// Change the name of the "extra arguments" field
+    ///
+    /// The associated field must be of `type Vec<String>`
+    ///
+    /// ```flag_config.rest_field("remaining")```
     pub fn rest_field(mut self, string: &str) -> FlagConfiguration {
         self.rest_field = string.to_str();
         self
@@ -364,6 +437,11 @@ impl Decoder<HammerError> for FlagDecoder {
     fn read_map_elt_val<T>(&mut self, idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
 }
 
+/**
+Convert arguments into struct T
+
+hammer_config! must be called on T beforehand.
+*/
 pub fn decode_args<T: FlagParse>(args: &[String]) -> HammerResult<T> {
     let mut decoder = FlagDecoder::new::<T>(args);
     FlagParse::decode_flags(&mut decoder)

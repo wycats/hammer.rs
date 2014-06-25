@@ -172,6 +172,17 @@ impl Decoder<HammerError> for UsageDecoder {
     fn read_map_elt_val<T>(&mut self, idx: uint, f: |&mut UsageDecoder| -> UsageResult<T>) -> UsageResult<T> { unimplemented!() }
 }
 
+/** Get the description and usage for an option structure
+
+```
+#[deriving(Decodable)]
+struct MyOpts {verbose : bool}
+hammer_config!(MyOpts)
+
+let (desc, usage_text) = usage::<MyOpts>(true);
+```
+*/
+
 pub fn usage<T: UsageParse>(force_indent: bool) -> (Option<String>, String) {
     let mut decoder: UsageDecoder = UsageDecoder::new(None::<T>);
     let _: Result<T, HammerError> = UsageParse::decode_usage(&mut decoder);
