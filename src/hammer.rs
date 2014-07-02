@@ -172,7 +172,7 @@ impl FlagDecoder {
 
         source.as_slice().position_elem(&self.canonical_field_name()).or_else(|| {
             aliases.find(self.current_field.get_ref()).and_then(|&c| {
-                source.iter().position(|s| s.as_slice()[0] == '-' as u8 && s.as_slice()[1] == c as u8)
+                source.iter().position(|s| s.as_bytes()[0] == '-' as u8 && s.as_bytes()[1] == c as u8)
             })
         })
     }
