@@ -31,7 +31,7 @@ hammer_config!(MyOpts "A test of hammer.rs", // note the description line
 fn main() {
     let opts: MyOpts = decode_args(os::args().tail()).unwrap();
     println!("opts given: {}", opts);
-    
+
     let (desc, usage_text) = usage::<MyOpts>(true);
     println!("Usage: {}", os::args().get(0));
     println!("{}", usage_text);
@@ -48,7 +48,7 @@ Several different types are allowed within the struct:
 * `Option<T>`, for optional flags with an argument
 */
 
-#![crate_id="hammer"]
+#![crate_name = "hammer"]
 #![crate_type = "rlib"]
 #![feature(macro_rules)]
 
@@ -100,7 +100,7 @@ Make a struct usable by hammer by implementing `FlagConfig` for it.
 Usage: `hammer_config!(TYPE ["DESCRIPTION"] [, |c| {EXPRESSION} ])`
 
 The optional DESCRIPTION will be returned by `usage`, and the optional
-EXPRESSION is useful for adding short versions of flags, etc.; see 
+EXPRESSION is useful for adding short versions of flags, etc.; see
 `FlagConfiguration`.
 */
 #[macro_export]
@@ -159,7 +159,7 @@ impl FlagConfiguration {
             rest_field: "rest".to_str()
         }
     }
-    
+
     /// Add new "short" version of a flag
     ///
     /// ```flag_config.short("verbose", 'v')```
@@ -175,7 +175,7 @@ impl FlagConfiguration {
         self.description = Some(string.to_str());
         self
     }
-    
+
     /// Change the name of the "extra arguments" field
     ///
     /// The associated field must be of `type Vec<String>`
