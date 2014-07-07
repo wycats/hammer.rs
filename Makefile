@@ -1,5 +1,5 @@
 RUSTC ?= rustc
-HAMMER_LIB := $(shell $(RUSTC) --crate-file-name src/hammer.rs --crate-type=rlib)
+HAMMER_LIB := $(shell $(RUSTC) --print-file-name src/hammer.rs --crate-type=rlib)
 
 default: target/$(HAMMER_LIB)
 
