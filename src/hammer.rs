@@ -156,7 +156,7 @@ impl FlagConfiguration {
         FlagConfiguration {
             short_aliases: HashMap::new(),
             description: None,
-            rest_field: "rest".to_str()
+            rest_field: "rest".to_string()
         }
     }
 
@@ -164,7 +164,7 @@ impl FlagConfiguration {
     ///
     /// ```flag_config.short("verbose", 'v')```
     pub fn short(mut self, string: &str, char: char) -> FlagConfiguration {
-        self.short_aliases.insert(string.to_str(), char);
+        self.short_aliases.insert(string.to_string(), char);
         self
     }
 
@@ -172,7 +172,7 @@ impl FlagConfiguration {
     ///
     /// ```flag_config.descr("Foo is a program to do bar")```
     pub fn desc(mut self, string: &str) -> FlagConfiguration {
-        self.description = Some(string.to_str());
+        self.description = Some(string.to_string());
         self
     }
 
@@ -182,7 +182,7 @@ impl FlagConfiguration {
     ///
     /// ```flag_config.rest_field("remaining")```
     pub fn rest_field(mut self, string: &str) -> FlagConfiguration {
-        self.rest_field = string.to_str();
+        self.rest_field = string.to_string();
         self
     }
 
@@ -340,7 +340,7 @@ impl Decoder<HammerError> for FlagDecoder {
 
     fn read_str(&mut self) -> HammerResult<String> {
         match self.state {
-            ProcessingRest(i) => return Ok(self.remaining().get(i as uint).to_str()),
+            ProcessingRest(i) => return Ok(self.remaining().get(i as uint).to_string()),
             _ => ()
         }
 
@@ -374,7 +374,7 @@ impl Decoder<HammerError> for FlagDecoder {
     fn read_struct_field<T>(&mut self, f_name: &str, f_idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> {
         assert!(!self.done, "Flag struct must not contain any fields after {}", self.config.rest_field);
 
-        self.current_field = Some(f_name.to_str());
+        self.current_field = Some(f_name.to_string());
         f(self)
     }
 
@@ -410,7 +410,7 @@ impl Decoder<HammerError> for FlagDecoder {
     #[allow(unused_variable)]
     fn read_seq<T>(&mut self, f: |&mut FlagDecoder, uint| -> HammerResult<T>) -> HammerResult<T> {
         let len = self.remaining().len();
-        let current_field = self.current_field.as_ref().unwrap().to_str();
+        let current_field = self.current_field.as_ref().unwrap().to_string();
 
         if current_field.as_slice() != self.config.rest_field.as_slice() { unimplemented!() }
         self.state = ProcessingRest(-1);
@@ -486,11 +486,11 @@ mod tests {
 
     #[test]
     fn test_example() {
-        let args = vec!("--count".to_str(), "1".to_str(), "foo".to_str(), "-c".to_str());
+        let args = vec!("--count".to_string(), "1".to_string(), "foo".to_string(), "-c".to_string());
         let mut decoder = FlagDecoder::new::<CompileFlags>(args.as_slice());
         let flags: CompileFlags = Decodable::decode(&mut decoder).unwrap();
 
-        assert_eq!(decoder.remaining(), vec!("foo".to_str()));
+        assert_eq!(decoder.remaining(), vec!("foo".to_string()));
         assert_eq!(flags, CompileFlags{ color: true, count: 1u, maybe: None, some_some: false });
     }
 
@@ -499,29 +499,29 @@ mod tests {
         let mut decoder = FlagDecoder::new::<CompileFlags>(vec!().as_slice());
         let flags: HammerResult<CompileFlags> = Decodable::decode(&mut decoder);
 
-        assert_eq!(flags, Err(HammerError { message: "--count is required".to_str() }));
+        assert_eq!(flags, Err(HammerError { message: "--count is required".to_string() }));
 
         assert!(decoder.error == None, "The decoder doesn't have an error");
     }
 
     #[test]
     fn test_rest() {
-        let args = vec!("--verbose".to_str(), "hello".to_str(), "goodbye".to_str());
+        let args = vec!("--verbose".to_string(), "hello".to_string(), "goodbye".to_string());
 
         let mut decoder = FlagDecoder::new::<GlobalFlags>(args.as_slice());
         let flags: GlobalFlags = Decodable::decode(&mut decoder).unwrap();
 
-        assert_eq!(flags, GlobalFlags { color: false, verbose: true, rest: vec!("hello".to_str(), "goodbye".to_str()) });
+        assert_eq!(flags, GlobalFlags { color: false, verbose: true, rest: vec!("hello".to_string(), "goodbye".to_string()) });
     }
 
     #[test]
     fn test_aliased_rest() {
-        let args = vec!("-v".to_str(), "hello".to_str(), "goodbye".to_str());
+        let args = vec!("-v".to_string(), "hello".to_string(), "goodbye".to_string());
 
         let mut decoder = FlagDecoder::new::<AliasedRest>(args.as_slice());
         let flags: AliasedRest = Decodable::decode(&mut decoder).unwrap();
 
-        assert_eq!(flags, AliasedRest { color: false, verbose: true, remaining: vec!("hello".to_str(), "goodbye".to_str()) });
+        assert_eq!(flags, AliasedRest { color: false, verbose: true, remaining: vec!("hello".to_string(), "goodbye".to_string()) });
     }
 
 }
