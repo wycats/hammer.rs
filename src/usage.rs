@@ -13,7 +13,7 @@ struct FieldUsage {
 
 impl FieldUsage {
     fn new(canonical: &str) -> FieldUsage {
-        FieldUsage { canonical: canonical.to_str(), alias: None, optional: false }
+        FieldUsage { canonical: canonical.to_string(), alias: None, optional: false }
     }
 
     fn alias(&mut self, alias: char) {
@@ -206,7 +206,7 @@ fn print_usage(fields: &[FieldUsage], force_indent: bool) -> String {
 
     let (optional, mandatory) = Vec::from_slice(fields).partition(|f| f.optional);
 
-    out.push_str(print_fields(mandatory.as_slice(), indent, |f| f.to_str()).as_slice());
+    out.push_str(print_fields(mandatory.as_slice(), indent, |f| f.to_string()).as_slice());
     out.push_str(print_fields(optional.as_slice(), indent, |f| format!("[{}]", f)).as_slice());
 
     out
@@ -218,7 +218,7 @@ fn print_fields(fields: &[FieldUsage], indent: &str, format: |&str| -> String) -
     for field in fields.iter() {
         let shorthand = field.alias
             .map(|a| format!("-{}, ", a))
-            .unwrap_or(indent.to_str());
+            .unwrap_or(indent.to_string());
 
         let longhand = format(field.canonical.as_slice());
 
@@ -258,11 +258,11 @@ mod tests {
 
     #[test]
     fn test_mixed_usage() {
-        assert_eq!(usage::<MixedOptions>(false), "    --line-count\n    [--color]\n-v, [--verbose]\n".to_str())
+        assert_eq!(usage::<MixedOptions>(false), "    --line-count\n    [--color]\n-v, [--verbose]\n".to_string())
     }
 
     #[test]
     fn test_no_shorthand_usage() {
-        assert_eq!(usage::<NoShorthandOptions>(false), "--line-count\n[--color]\n[--verbose]\n".to_str())
+        assert_eq!(usage::<NoShorthandOptions>(false), "--line-count\n[--color]\n[--verbose]\n".to_string())
     }
 }
