@@ -258,11 +258,11 @@ mod tests {
 
     #[test]
     fn test_mixed_usage() {
-        assert_eq!(usage::<MixedOptions>(false), "    --line-count\n    [--color]\n-v, [--verbose]\n".to_string())
+        assert_eq!(usage::<MixedOptions>(false), (None, "    --line-count\n    [--color]\n-v, [--verbose]\n".to_string()))
     }
 
     #[test]
     fn test_no_shorthand_usage() {
-        assert_eq!(usage::<NoShorthandOptions>(false), "--line-count\n[--color]\n[--verbose]\n".to_string())
+        assert_eq!(usage::<NoShorthandOptions>(false), (None, "--line-count\n[--color]\n[--verbose]\n".to_string()))
     }
 }
