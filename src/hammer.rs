@@ -340,7 +340,7 @@ impl Decoder<HammerError> for FlagDecoder {
 
     fn read_str(&mut self) -> HammerResult<String> {
         match self.state {
-            ProcessingRest(i) => return Ok(self.remaining().get(i as uint).to_string()),
+            ProcessingRest(i) => return Ok(self.remaining()[i as uint].to_string()),
             _ => ()
         }
 
@@ -351,7 +351,7 @@ impl Decoder<HammerError> for FlagDecoder {
         }
 
         let pos = position.unwrap();
-        let val = self.source.get(pos + 1).clone();
+        let val = self.source[pos + 1].clone();
 
         self.remove_val_field();
 
