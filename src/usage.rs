@@ -68,7 +68,8 @@ impl Decoder<HammerError> for UsageDecoder {
     fn read_nil(&mut self) -> UsageResult<()> { unimplemented!() }
 
     fn read_uint(&mut self) -> UsageResult<uint> {
-        unimplemented!()
+        self.field();
+        default()
     }
 
     // doesn't handle "too large to represent" problems. will just truncate.
@@ -89,6 +90,7 @@ impl Decoder<HammerError> for UsageDecoder {
     }
 
     fn read_f64(&mut self) -> UsageResult<f64> {
+        self.field();
         default()
     }
 
@@ -236,7 +238,8 @@ mod tests {
     #[deriving(Decodable)]
     struct MixedOptions {
         color: Option<String>,
-        line_count: String,
+        line_count: uint,
+        temp: f64,
         verbose: bool,
         rest: Vec<String>
     }
@@ -249,7 +252,8 @@ mod tests {
     #[deriving(Decodable)]
     struct NoShorthandOptions {
         color: Option<String>,
-        line_count: String,
+        line_count: uint,
+        temp: f64,
         verbose: bool,
         rest: Vec<String>
     }
@@ -258,11 +262,11 @@ mod tests {
 
     #[test]
     fn test_mixed_usage() {
-        assert_eq!(usage::<MixedOptions>(false), (None, "    --line-count\n    [--color]\n-v, [--verbose]\n".to_string()))
+        assert_eq!(usage::<MixedOptions>(false), (None, "    --line-count\n    --temp\n    [--color]\n-v, [--verbose]\n".to_string()))
     }
 
     #[test]
     fn test_no_shorthand_usage() {
-        assert_eq!(usage::<NoShorthandOptions>(false), (None, "--line-count\n[--color]\n[--verbose]\n".to_string()))
+        assert_eq!(usage::<NoShorthandOptions>(false), (None, "--line-count\n--temp\n[--color]\n[--verbose]\n".to_string()))
     }
 }
