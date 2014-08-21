@@ -435,6 +435,7 @@ impl Decoder<HammerError> for FlagDecoder {
     fn read_map_elt_key<T>(&mut self, idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
     #[allow(unused_variable)]
     fn read_map_elt_val<T>(&mut self, idx: uint, f: |&mut FlagDecoder| -> HammerResult<T>) -> HammerResult<T> { unimplemented!() }
+    fn error(&mut self, err: &str) -> HammerError { HammerError { message: err.to_string() } }
 }
 
 /**
