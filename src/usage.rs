@@ -172,7 +172,7 @@ impl Decoder<HammerError> for UsageDecoder {
     fn read_map_elt_key<T>(&mut self, idx: uint, f: |&mut UsageDecoder| -> UsageResult<T>) -> UsageResult<T> { unimplemented!() }
     #[allow(unused_variable)]
     fn read_map_elt_val<T>(&mut self, idx: uint, f: |&mut UsageDecoder| -> UsageResult<T>) -> UsageResult<T> { unimplemented!() }
-    fn error(&mut self, err: &str) -> HammerError { HammerError { message: err } }
+    fn error(&mut self, err: &str) -> HammerError { HammerError { message: err.to_string() } }
 }
 
 /** Get the description and usage for an option structure
